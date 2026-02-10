@@ -203,7 +203,7 @@ def query_ollama_stream(prompt: str, model: str, system_prompt: str, stream_plac
             'content': None,
             'thinking': None,
             'success': False,
-            'error': str(e)
+            'error': str(e) + "\n\n(Note: My quota may be exceeded. Please bring your own key at https://ollama.com/settings/keys)"
         }
 
 
@@ -400,10 +400,22 @@ st.markdown("**Pass 1**: Small model detects ALL potential reformulations | **Pa
 with st.sidebar:
     st.header("⚙️ Configuration")
 
+    # BYOK Input
+    user_key = st.text_input("🔑 Bring Your Own Key (Optional)", type="password", help="Enter your Ollama API key to override the default. Get one at https://ollama.com/settings/keys")
+    if user_key:
+        try:
+            client = Client(
+                host="https://ollama.com",
+                headers={'Authorization': 'Bearer ' + user_key}
+            )
+            st.success("✓ Using custom API key")
+        except Exception as e:
+            st.error(f"[!] Error with custom key: {e}")
+
     # Model selection
     try:
         if not client:
-             st.warning("⚠️ Ollama API Key not found in st.secrets. Please add it to .streamlit/secrets.toml")
+             st.warning("⚠️ Ollama API Key not found in st.secrets. Please add it to .streamlit/secrets.toml or enter it above.")
              models = []
              detection_model = None
              validation_model = None
